@@ -1,0 +1,9 @@
+<library path="unitree_g1_driver">
+  <class name="unitree_g1_driver/G1ArmSdkSystem"
+         type="unitree_g1_driver::G1ArmSdkSystem"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      Upper-body control of the Unitree G1 (29 DoF) through rt/arm_sdk, with state from rt/lowstate.
+    </description>
+  </class>
+</library>

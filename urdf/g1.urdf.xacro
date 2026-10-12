@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<robot name="g1" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!-- use_mock: true = mock_components/GenericSystem (no robot), false = G1ArmSdkSystem on rt/arm_sdk -->
+  <xacro:arg name="use_mock" default="true"/>
+
+  <!-- Unitree's g1_29dof_rev_1_0 (mode_machine 5), mesh paths rewritten to package:// -->
+  <xacro:include filename="$(find unitree_g1_driver)/urdf/g1_29dof_rev_1_0.urdf"/>
+  <xacro:include filename="$(find unitree_g1_driver)/urdf/g1.ros2_control.xacro"/>
+
+  <xacro:g1_ros2_control name="G1ArmSdk" use_mock="$(arg use_mock)"/>
+</robot>

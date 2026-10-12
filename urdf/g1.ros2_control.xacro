@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Upper-body joint that the arm SDK commands. The initial value is only used by the mock. -->
+  <xacro:macro name="g1_commanded_joint" params="name kp kd initial">
+    <joint name="${name}">
+      <command_interface name="position"/>
+      <state_interface name="position">
+        <param name="initial_value">${initial}</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+      <param name="kp">${kp}</param>
+      <param name="kd">${kd}</param>
+    </joint>
+  </xacro:macro>
+
+  <!-- Leg joint: state only, so the whole robot shows up in /joint_states and TF. -->
+  <xacro:macro name="g1_state_joint" params="name initial:=0.0">
+    <joint name="${name}">
+      <state_interface name="position">
+        <param name="initial_value">${initial}</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:macro name="g1_ros2_control" params="name use_mock">
+    <!-- PD gains sent with every arm SDK command (Nm/rad, Nm/(rad/s)).
+         Arms/wrists: 2x g1pilot's stiffness (150/4, 40/1.5 sagged), kd scaled by ~sqrt(2).
+         Waist as in Unitree's arm SDK example. -->
+    <xacro:property name="arm_kp" value="300.0"/>
+    <xacro:property name="arm_kd" value="6.0"/>
+    <xacro:property name="wrist_kp" value="80.0"/>
+    <xacro:property name="wrist_kd" value="2.0"/>
+    <xacro:property name="waist_kp" value="240.0"/>
+    <xacro:property name="waist_kd" value="6.0"/>
+
+    <ros2_control name="${name}" type="system">
+      <hardware>
+        <xacro:if value="${use_mock}">
+          <plugin>mock_components/GenericSystem</plugin>
+          <param name="calculate_dynamics">true</param>
+        </xacro:if>
+        <xacro:unless value="${use_mock}">
+          <plugin>unitree_g1_driver/G1ArmSdkSystem</plugin>
+          <!-- ROS topics; rclcpp adds the "rt/" DDS prefix that Unitree uses -->
+          <param name="state_topic">lowstate</param>
+          <param name="command_topic">arm_sdk</param>
+          <!-- Error out (and release the arms) if lowstate is older than this while active, s -->
+          <param name="state_timeout">0.1</param>
+          <!-- How long on_activate waits for lowstate, s -->
+          <param name="activation_timeout">3.0</param>
+          <!-- Time to blend the arm SDK weight 0 -> 1 on activation and back on release, s -->
+          <param name="weight_ramp_time">2.0</param>
+          <!-- Rate limit on every sent joint position, rad/s -->
+          <param name="max_joint_velocity">1.0</param>
+        </xacro:unless>
+      </hardware>
+
+      <xacro:g1_state_joint name="left_hip_pitch_joint"/>
+      <xacro:g1_state_joint name="left_hip_roll_joint"/>
+      <xacro:g1_state_joint name="left_hip_yaw_joint"/>
+      <xacro:g1_state_joint name="left_knee_joint"/>
+      <xacro:g1_state_joint name="left_ankle_pitch_joint"/>
+      <xacro:g1_state_joint name="left_ankle_roll_joint"/>
+      <xacro:g1_state_joint name="right_hip_pitch_joint"/>
+      <xacro:g1_state_joint name="right_hip_roll_joint"/>
+      <xacro:g1_state_joint name="right_hip_yaw_joint"/>
+      <xacro:g1_state_joint name="right_knee_joint"/>
+      <xacro:g1_state_joint name="right_ankle_pitch_joint"/>
+      <xacro:g1_state_joint name="right_ankle_roll_joint"/>
+
+      <!-- The arm SDK blends arms and waist together, so every upper-body joint is commanded.
+           Joints no controller claims hold the pose measured at activation. -->
+      <xacro:g1_commanded_joint name="waist_yaw_joint" kp="${waist_kp}" kd="${waist_kd}" initial="0.0"/>
+      <xacro:g1_commanded_joint name="waist_roll_joint" kp="${waist_kp}" kd="${waist_kd}" initial="0.0"/>
+      <xacro:g1_commanded_joint name="waist_pitch_joint" kp="${waist_kp}" kd="${waist_kd}" initial="0.0"/>
+
+      <xacro:g1_commanded_joint name="left_shoulder_pitch_joint" kp="${arm_kp}" kd="${arm_kd}" initial="0.2"/>
+      <xacro:g1_commanded_joint name="left_shoulder_roll_joint" kp="${arm_kp}" kd="${arm_kd}" initial="0.25"/>
+      <xacro:g1_commanded_joint name="left_shoulder_yaw_joint" kp="${arm_kp}" kd="${arm_kd}" initial="0.0"/>
+      <xacro:g1_commanded_joint name="left_elbow_joint" kp="${arm_kp}" kd="${arm_kd}" initial="1.0"/>
+      <xacro:g1_commanded_joint name="left_wrist_roll_joint" kp="${wrist_kp}" kd="${wrist_kd}" initial="0.0"/>
+      <xacro:g1_commanded_joint name="left_wrist_pitch_joint" kp="${wrist_kp}" kd="${wrist_kd}" initial="0.0"/>
+      <xacro:g1_commanded_joint name="left_wrist_yaw_joint" kp="${wrist_kp}" kd="${wrist_kd}" initial="0.0"/>
+
+      <xacro:g1_commanded_joint name="right_shoulder_pitch_joint" kp="${arm_kp}" kd="${arm_kd}" initial="0.2"/>
+      <xacro:g1_commanded_joint name="right_shoulder_roll_joint" kp="${arm_kp}" kd="${arm_kd}" initial="-0.25"/>
+      <xacro:g1_commanded_joint name="right_shoulder_yaw_joint" kp="${arm_kp}" kd="${arm_kd}" initial="0.0"/>
+      <xacro:g1_commanded_joint name="right_elbow_joint" kp="${arm_kp}" kd="${arm_kd}" initial="1.0"/>
+      <xacro:g1_commanded_joint name="right_wrist_roll_joint" kp="${wrist_kp}" kd="${wrist_kd}" initial="0.0"/>
+      <xacro:g1_commanded_joint name="right_wrist_pitch_joint" kp="${wrist_kp}" kd="${wrist_kd}" initial="0.0"/>
+      <xacro:g1_commanded_joint name="right_wrist_yaw_joint" kp="${wrist_kp}" kd="${wrist_kd}" initial="0.0"/>
+    </ros2_control>
+  </xacro:macro>
+</robot>

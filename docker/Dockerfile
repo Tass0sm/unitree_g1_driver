@@ -15,8 +15,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 # Cartesian controllers from the fork used on the PC (ur_overlay), pinned to the same commit
-# (upstream ros2 + "Replace auto_declare with declare_parameter").
-ARG CARTESIAN_CONTROLLERS_COMMIT=3951c3e
+# (upstream ros2 + "Replace auto_declare with declare_parameter" + solver.synchronize_joint_positions).
+ARG CARTESIAN_CONTROLLERS_COMMIT=430bbfc
 WORKDIR /opt/deps_ws/src
 RUN git clone https://github.com/Tass0sm/cartesian_controllers.git \
   && git -C cartesian_controllers checkout ${CARTESIAN_CONTROLLERS_COMMIT}

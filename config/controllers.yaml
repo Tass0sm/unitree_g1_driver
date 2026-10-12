@@ -28,8 +28,10 @@ left_arm_motion_controller:
     command_interfaces:
       - position
     solver:
-      error_scale: 0.5
+      error_scale: 1.0
       iterations: 10
+      # The G1's soft PD joints lag their commands; re-syncing every cycle makes the controller hunt
+      synchronize_joint_positions: false
       publish_state_feedback: True
     pd_gains:
       trans_x: {p: 1.0}
@@ -67,8 +69,10 @@ right_arm_motion_controller:
     command_interfaces:
       - position
     solver:
-      error_scale: 0.5
+      error_scale: 1.0
       iterations: 10
+      # The G1's soft PD joints lag their commands; re-syncing every cycle makes the controller hunt
+      synchronize_joint_positions: false
       publish_state_feedback: True
     pd_gains:
       trans_x: {p: 1.0}

@@ -78,8 +78,8 @@ ros2 control set_hardware_component_state G1ArmSdk inactive   # 2 s blend back t
 ```
 
 **Arm sag:** the joints are pure PD, so they droop under gravity until the position error is
-large enough. Raise `arm_kp`/`wrist_kp` (and the matching `kd`) at the top of the
-`g1_ros2_control` macro in `urdf/g1.ros2_control.xacro`, then relaunch. Keep
+large enough (a few mm at the hand). Raise `arm_kp`/`wrist_kp` (and the matching `kd`) at the top
+of the `g1_ros2_control` macro in `urdf/g1.ros2_control.xacro`, then relaunch. Keep
 `scripts/release_arm_sdk.py`'s `GAINS` in sync.
 
 **If the controller manager dies** without releasing the arms (killed with `-9`, crash), run:
@@ -90,6 +90,10 @@ ros2 run unitree_g1_driver release_arm_sdk.py
 **Notes:**
 - Tuning: `solver.error_scale` and `pd_gains` in `config/controllers.yaml`. Joint gains are in the
   xacro.
+- `solver.synchronize_joint_positions: false` (from the Tass0sm fork of cartesian_controllers) stops
+  the arm controllers from resetting their internal model to the measured joints every cycle. The
+  G1's joints lag their commands, and with the reset the hand hunts around the target instead of
+  settling.
 - The "Failed to parse type hash" warnings on domain 0 come from Unitree's onboard publishers and
   are harmless.
 - RViz's fixed frame is `torso_link` because the marker is stamped at configure time. With any

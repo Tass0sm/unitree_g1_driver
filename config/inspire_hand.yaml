@@ -1,0 +1,14 @@
+# Right Inspire hand (Modbus TCP). Finger order: little, ring, middle, index, thumb_bend,
+# thumb_rotation. Angles 0..1000 (1000 = open). Speed and force are the hand's raw units.
+inspire_hand:
+  ros__parameters:
+    host: "192.168.123.211"
+    port: 6000
+    joint_prefix: "right_"
+    rate: 20.0
+    speed: [500, 500, 500, 500, 500, 500]
+    force_limit: [1000, 1000, 1000, 1000, 1000, 1000]
+    # Power grasp of the can: fingers open, thumb rotated to oppose them, then everything closes.
+    # Directions not yet checked on the hardware (thumb_rotation especially).
+    open_pose: [1000, 1000, 1000, 1000, 1000, 0]
+    close_pose: [0, 0, 0, 0, 0, 0]

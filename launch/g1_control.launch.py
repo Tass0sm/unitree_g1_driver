@@ -19,6 +19,9 @@ def launch_setup(context):
     use_mock = LaunchConfiguration("use_mock").perform(context).lower() == "true"
     arms = LaunchConfiguration("arms").perform(context)
     rviz = LaunchConfiguration("rviz").perform(context).lower() == "true"
+    hand = LaunchConfiguration("hand").perform(context)
+    if hand not in ("inspire", "rubber"):
+        raise RuntimeError(f"hand must be inspire or rubber, got '{hand}'")
 
     sides = ["left", "right"] if arms == "both" else [arms]
     if not set(sides) <= {"left", "right"}:
@@ -35,6 +38,8 @@ def launch_setup(context):
                     ),
                     " use_mock:=",
                     str(use_mock).lower(),
+                    " hand:=",
+                    hand,
                 ]
             ),
             value_type=str,
@@ -90,6 +95,9 @@ def launch_setup(context):
             extra_args=["--controller-ros-args", " ".join(remaps)],
         ),
     ]
+    if hand == "inspire":
+        # The URDF's finger joints, from the Inspire hand drivers (open when they aren't running)
+        nodes.append(Node(package="unitree_g1_driver", executable="inspire_hand_joint_states.py", output="both"))
     if rviz:
         nodes.append(
             Node(
@@ -117,6 +125,9 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "arms", default_value="left", description="Arm controllers to load: left, right or both"
+            ),
+            DeclareLaunchArgument(
+                "hand", default_value="inspire", description="Hands in the URDF: inspire or rubber"
             ),
             DeclareLaunchArgument(
                 "rviz",

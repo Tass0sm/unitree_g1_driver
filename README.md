@@ -87,6 +87,13 @@ of the `g1_ros2_control` macro in `urdf/g1.ros2_control.xacro`, then relaunch. K
 ros2 run unitree_g1_driver release_arm_sdk.py
 ```
 
+**Hands (`hand:=inspire|rubber`, default inspire):** picks the URDF,
+`g1_29dof_rev_1_0_with_inspire_hand_DFQ.urdf` (Unitree's, with fixed `{left,right}_rubber_hand`
+frames added at the Inspire fingertips) or the stock one. With `inspire`, the launch also starts
+`inspire_hand_joint_states.py`, which shows the fingers from the hand drivers' `~/state` (approximate,
+display only). The hand driver itself is `scripts/inspire_hand.py` (Modbus TCP,
+`config/inspire_hand.yaml`).
+
 **Notes:**
 - Tuning: `solver.error_scale` and `pd_gains` in `config/controllers.yaml`. Joint gains are in the
   xacro.

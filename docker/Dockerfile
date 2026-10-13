@@ -60,6 +60,13 @@ RUN apt-get update \
        --packages-up-to cartesian_motion_controller cartesian_controller_handles \
   && rm -rf build log
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ros-jazzy-realsense2-camera \
+      ros-jazzy-apriltag-ros \
+      ros-jazzy-compressed-image-transport \
+      python3-av \
+    && rm -rf /var/lib/apt/lists/*
+
 # The Unitree services live on DDS domain 0.
 ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 ENV ROS_DOMAIN_ID=0

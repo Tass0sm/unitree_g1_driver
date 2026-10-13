@@ -16,4 +16,6 @@ exec docker run -it --rm --name "$NAME" \
   --net host \
   --cap-add SYS_NICE --ulimit rtprio=99 --ulimit memlock=-1 \
   -v "$WS":/g1_ws \
+  -v /dev:/dev \
+  --device-cgroup-rule 'c 81:* rmw' --device-cgroup-rule 'c 189:* rmw' \
   g1_control:latest bash

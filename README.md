@@ -87,6 +87,17 @@ of the `g1_ros2_control` macro in `urdf/g1.ros2_control.xacro`, then relaunch. K
 ros2 run unitree_g1_driver release_arm_sdk.py
 ```
 
+**Obstacle avoidance (`ik_solver:=placo`):** `g1_control.launch.py ik_solver:=placo` loads
+`config/placo.yaml` on top of `controllers.yaml`: the arm controllers use the PlaCo IK solver
+(Tass0sm/cartesian_controllers, `placo_obstacles` branch), which keeps spheres approximating each
+forearm and hand (`placo.collision_spheres`) at least `placo.obstacles.margin` from the boxes and
+spheres published as markers on `/<side>_arm_motion_controller/obstacles` (e.g. by
+`g1_perception/table_estimator`). The spheres are shown in RViz
+(`/<side>_arm_motion_controller/collision_spheres`). A low-weight posture task
+(`placo.posture`) keeps the redundant joints near a nominal posture; above ~1e-5 it visibly pulls
+the hand off its target, and much below it the null space is unregulated and the arm jitters. The
+image builds PlaCo from source (`docker/Dockerfile`, with `docker/placo.patch`).
+
 **Hands (`hand:=inspire|rubber`, default inspire):** picks the URDF,
 `g1_29dof_rev_1_0_with_inspire_hand_DFQ.urdf` (Unitree's, with fixed `{left,right}_rubber_hand`
 frames added at the Inspire fingertips) or the stock one. With `inspire`, the launch also starts

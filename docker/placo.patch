@@ -1,0 +1,124 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8635233..87da9e4 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,6 +1,8 @@
+ cmake_minimum_required(VERSION 3.10)
+ project(placo)
+ 
++option(PLACO_PYTHON "Build the Python bindings (needs Boost.Python, eigenpy and doxystub)" ON)
++
+ find_package(Threads)
+ find_package(pinocchio REQUIRED)
+ find_package(eiquadprog REQUIRED)
+@@ -116,9 +118,15 @@ add_library(libplaco SHARED
+ )
+ 
+ target_include_directories(libplaco PUBLIC 
+-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> 
+-  ${PROTOBUF_INCLUDE_DIRS}
+-  ${CMAKE_CURRENT_BINARY_DIR})
++  # This is used ONLY when building libplaco itself
++  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
++  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
++  $<BUILD_INTERFACE:${PROTOBUF_INCLUDE_DIRS}>
++
++  # This is used by OTHER projects after libplaco is installed
++  # It assumes headers were installed to 'include/' (standard)
++  $<INSTALL_INTERFACE:include>
++)
+ 
+ target_link_libraries(libplaco PUBLIC
+     Eigen3::Eigen
+@@ -137,6 +145,7 @@ if(TARGET rhoban_utils)
+   target_link_libraries(libplaco PUBLIC rhoban_utils)
+ endif ()
+ 
++if(PLACO_PYTHON)
+ set(CMAKE_SHARED_MODULE_PREFIX "")
+ 
+ find_package(Python3 REQUIRED)
+@@ -176,16 +185,52 @@ ADD_CUSTOM_TARGET(placo_utils_files ALL
+                   ${CMAKE_CURRENT_SOURCE_DIR}/python/placo_utils
+                   ${CMAKE_BINARY_DIR}/${PYTHON_SITELIB}/placo_utils
+                   )
++endif()
+ 
+ if (APPLE)
++if(PLACO_PYTHON)
+ set_target_properties(placo PROPERTIES INSTALL_RPATH "@loader_path/../..")
++endif()
+ set_target_properties(libplaco PROPERTIES INSTALL_RPATH "@loader_path")
+ else()
++if(PLACO_PYTHON)
+ set_target_properties(placo PROPERTIES INSTALL_RPATH "\$ORIGIN/../..")
++endif()
+ set_target_properties(libplaco PROPERTIES INSTALL_RPATH "\$ORIGIN")
+ endif()
+ 
+-install(TARGETS libplaco DESTINATION lib)
++install(TARGETS libplaco
++        EXPORT placoTargets
++        LIBRARY DESTINATION lib
++        ARCHIVE DESTINATION lib
++        RUNTIME DESTINATION bin
++        INCLUDES DESTINATION include
++)
++if(PLACO_PYTHON)
+ install(TARGETS placo DESTINATION ${PYTHON_SITELIB})
+ install(FILES ${CMAKE_BINARY_DIR}/${PYTHON_SITELIB}/placo.pyi DESTINATION ${PYTHON_SITELIB})
+ install(DIRECTORY ${CMAKE_BINARY_DIR}/${PYTHON_SITELIB}/placo_utils DESTINATION ${PYTHON_SITELIB})
++endif()
++install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/placo
++        DESTINATION include
++        FILES_MATCHING
++        PATTERN "*.h"
++        PATTERN "*.hpp")
++install(EXPORT placoTargets
++        FILE placoTargets.cmake
++        NAMESPACE placo::
++        DESTINATION lib/cmake/placo
++      )
++
++include(CMakePackageConfigHelpers)
++
++# Generate the config file
++configure_package_config_file(
++    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/placoConfig.cmake.in"
++    "${CMAKE_CURRENT_BINARY_DIR}/placoConfig.cmake"
++    INSTALL_DESTINATION lib/cmake/placo
++)
++
++# Install the config file
++install(FILES "${CMAKE_CURRENT_BINARY_DIR}/placoConfig.cmake"
++        DESTINATION lib/cmake/placo)
+diff --git a/cmake/placoConfig.cmake.in b/cmake/placoConfig.cmake.in
+new file mode 100644
+index 0000000..f8b1a50
+--- /dev/null
++++ b/cmake/placoConfig.cmake.in
+@@ -0,0 +1,11 @@
++@PACKAGE_INIT@
++
++include(CMakeFindDependencyMacro)
++
++# Ensure dependencies are found when someone calls find_package(placo)
++find_dependency(pinocchio)
++find_dependency(eiquadprog)
++find_dependency(jsoncpp)
++
++include("${CMAKE_CURRENT_LIST_DIR}/placoTargets.cmake")
++check_required_components(placo)
+diff --git a/src/placo/model/robot_wrapper.cpp b/src/placo/model/robot_wrapper.cpp
+index 993a5be..0687a7a 100644
+--- a/src/placo/model/robot_wrapper.cpp
++++ b/src/placo/model/robot_wrapper.cpp
+@@ -323,7 +323,7 @@ void RobotWrapper::compute_hessians()
+ Eigen::MatrixXd RobotWrapper::get_frame_hessian(FrameIndex frame, int joint_v_index)
+ {
+   // Frame parent joint index
+-  pinocchio::JointIndex joint_id = model.frames[frame].parent;
++  pinocchio::JointIndex joint_id = model.frames[frame].parentJoint;
+   pinocchio::SE3 T = model.frames[frame].placement;
+ 
+   pinocchio::Tensor<double, 3, 0> H = pinocchio::getJointKinematicHessian(model, *data, joint_id, pinocchio::LOCAL);

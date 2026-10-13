@@ -19,6 +19,7 @@ def launch_setup(context):
     use_mock = LaunchConfiguration("use_mock").perform(context).lower() == "true"
     arms = LaunchConfiguration("arms").perform(context)
     rviz = LaunchConfiguration("rviz").perform(context).lower() == "true"
+    ik_solver = LaunchConfiguration("ik_solver").perform(context)
     hand = LaunchConfiguration("hand").perform(context)
     if hand not in ("inspire", "rubber"):
         raise RuntimeError(f"hand must be inspire or rubber, got '{hand}'")
@@ -50,6 +51,12 @@ def launch_setup(context):
     )
 
     cm_parameters = [controllers]
+    if ik_solver == "placo":
+        cm_parameters.append(
+            PathJoinSubstitution([FindPackageShare("unitree_g1_driver"), "config", "placo.yaml"])
+        )
+    elif ik_solver != "forward_dynamics":
+        raise RuntimeError(f"ik_solver must be forward_dynamics or placo, got '{ik_solver}'")
     if not use_mock:
         # On the real robot, nothing is sent on arm_sdk until the hardware is activated by hand.
         cm_parameters.append({"hardware_components_initial_state.inactive": [HARDWARE_NAME]})
@@ -128,6 +135,11 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "hand", default_value="inspire", description="Hands in the URDF: inspire or rubber"
+            ),
+            DeclareLaunchArgument(
+                "ik_solver",
+                default_value="forward_dynamics",
+                description="Arm IK: forward_dynamics, or placo (obstacle avoidance, config/placo.yaml)",
             ),
             DeclareLaunchArgument(
                 "rviz",

@@ -1,0 +1,64 @@
+# Loaded on top of controllers.yaml with `ik_solver:=placo` (needs the placo_obstacles branch of
+# cartesian_controllers). The arms then avoid the obstacles published (as CUBE/SPHERE markers in
+# torso_link) on /<side>_arm_motion_controller/obstacles.
+#
+# Collision spheres approximate each forearm and Inspire hand: forearm, wrist, then palm to
+# fingertips along the hand's +x (sized on the Inspire DFQ meshes of the URDF, hand:=inspire: they
+# cover the palm and open fingers to within ~1 cm, out to 0.26 m from the wrist yaw link; not the
+# thumb when it swings out from the palm). Check them in RViz:
+# /<side>_arm_motion_controller/collision_spheres.
+right_arm_motion_controller:
+  ros__parameters:
+    ik_solver: "placo"
+    placo:
+      # Nominal posture (shoulder pitch, roll, yaw, elbow, wrist roll, pitch, yaw) that a low-weight
+      # task pulls the redundant joints towards, so they don't drift into joint limits. At 0.001
+      # the hand settled ~8 cm from its target; at 1e-5, a few mm.
+      posture:
+        positions: [-0.3, -0.2, 0.0, 1.0, 0.0, 0.0, 0.0]
+        weight: 0.00001
+      collision_spheres:
+        frames: [right_elbow_link, right_wrist_roll_link,
+                 right_wrist_yaw_link, right_wrist_yaw_link, right_wrist_yaw_link, right_wrist_yaw_link,
+                 right_wrist_yaw_link]
+        offsets: [0.05, 0.0, -0.005,
+                  0.0, 0.0, 0.0,
+                  0.04, 0.0, 0.0,
+                  0.09, 0.005, 0.0,
+                  0.14, 0.008, 0.0,
+                  0.19, 0.003, -0.003,
+                  0.235, 0.0, -0.004]
+        radii: [0.035, 0.035, 0.045, 0.05, 0.055, 0.05, 0.045]
+      obstacles:
+        margin: 0.02   # m kept between the spheres and obstacles
+        trigger: 0.08  # m
+        gain: 0.1
+        hard: true
+
+left_arm_motion_controller:
+  ros__parameters:
+    ik_solver: "placo"
+    placo:
+      # Nominal posture (shoulder pitch, roll, yaw, elbow, wrist roll, pitch, yaw) that a low-weight
+      # task pulls the redundant joints towards, so they don't drift into joint limits. At 0.001
+      # the hand settled ~8 cm from its target; at 1e-5, a few mm.
+      posture:
+        positions: [-0.3, 0.2, 0.0, 1.0, 0.0, 0.0, 0.0]
+        weight: 0.00001
+      collision_spheres:
+        frames: [left_elbow_link, left_wrist_roll_link,
+                 left_wrist_yaw_link, left_wrist_yaw_link, left_wrist_yaw_link, left_wrist_yaw_link,
+                 left_wrist_yaw_link]
+        offsets: [0.05, 0.0, -0.005,
+                  0.0, 0.0, 0.0,
+                  0.04, 0.0, 0.0,
+                  0.09, -0.005, 0.0,
+                  0.14, -0.008, 0.0,
+                  0.19, -0.003, -0.003,
+                  0.235, 0.0, -0.004]
+        radii: [0.035, 0.035, 0.045, 0.05, 0.055, 0.05, 0.045]
+      obstacles:
+        margin: 0.02
+        trigger: 0.08
+        gain: 0.1
+        hard: true

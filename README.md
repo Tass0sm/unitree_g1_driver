@@ -105,6 +105,21 @@ frames added at the Inspire fingertips) or the stock one. With `inspire`, the la
 display only). The hand driver itself is `scripts/inspire_hand.py` (Modbus TCP,
 `config/inspire_hand.yaml`).
 
+**Walking (`loco_bridge.launch.py`):** `g1_loco_bridge.py` turns body-frame `/g1/cmd_vel` (Twist)
+into Unitree's loco `SetVelocity` on `/api/sport/request` (`unitree_api` messages, from
+unitree_ros2), so the legs stay with Unitree's controller while `arm_sdk` has the arms. Commands are
+capped, rate limited, and stop when `/g1/cmd_vel` goes stale; each one lasts only
+`command_duration` on the robot. On firmware 1.5.x the remote's walk/run mode (FSM 802) accepts and
+ignores SDK velocity: the SDK walking state is 501, reached with damp → stand up → 501:
+```bash
+ros2 launch unitree_g1_driver loco_bridge.launch.py
+# damps first (the robot goes limp): on the gantry or held
+ros2 service call /g1_loco_bridge/enter_walk std_srvs/srv/Trigger
+ros2 topic pub -r 20 /g1/cmd_vel geometry_msgs/msg/Twist "{angular: {z: 0.3}}"
+```
+`~/stop` stops and ignores `/g1/cmd_vel` until `~/resume`. Limits and timeouts are in
+`config/loco_bridge.yaml`.
+
 **Notes:**
 - Tuning: `solver.error_scale` and `pd_gains` in `config/controllers.yaml`. Joint gains are in the
   xacro.

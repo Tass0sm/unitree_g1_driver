@@ -37,7 +37,7 @@ install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin
 )
 install(DIRECTORY config launch meshes rviz urdf DESTINATION share/${PROJECT_NAME})
-install(PROGRAMS scripts/release_arm_sdk.py scripts/inspire_hand.py scripts/inspire_hand_joint_states.py DESTINATION lib/${PROJECT_NAME})
+install(PROGRAMS scripts/release_arm_sdk.py scripts/inspire_hand.py scripts/inspire_hand_joint_states.py scripts/g1_loco_bridge.py DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

@@ -1,0 +1,20 @@
+# g1_loco_bridge: body-frame velocity commands -> Unitree's walking controller
+g1_loco_bridge:
+  ros__parameters:
+    cmd_vel_topic: /g1/cmd_vel
+    rate: 20.0                 # Hz, requests while moving
+    cmd_timeout: 0.3           # s: an older cmd_vel counts as zero
+    command_duration: 0.5      # s each request lasts on the robot if no newer one arrives
+    # Limits: small, for turning in place and a step or two between tables
+    max_vx: 0.3                # m/s
+    max_vy: 0.2                # m/s
+    max_wz: 0.6                # rad/s
+    max_linear_accel: 0.5      # m/s^2
+    max_angular_accel: 1.5     # rad/s^2
+    stop_repeats: 3            # zeros sent after stopping, then nothing
+    reply_timeout: 1.0         # s without a reply while moving: warn
+    # ~/enter_walk: damp -> stand up -> walk_fsm (501: the SDK walking state on firmware 1.5.x)
+    walk_fsm: 501
+    fsm_timeout: 3.0           # s for damp and stand up to be confirmed
+    damp_settle: 1.0           # s in damp before standing up
+    stand_timeout: 15.0        # s of asking for walk_fsm while it stands up

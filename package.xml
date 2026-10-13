@@ -19,12 +19,14 @@
   <exec_depend>cartesian_controller_handles</exec_depend>
   <exec_depend>cartesian_motion_controller</exec_depend>
   <exec_depend>controller_manager</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>joint_state_broadcaster</exec_depend>
   <exec_depend>rclpy</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>rviz2</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>std_srvs</exec_depend>
+  <exec_depend>unitree_api</exec_depend>
   <exec_depend>xacro</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
